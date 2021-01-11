@@ -44,29 +44,82 @@ The configuration details of each machine may be found below.
 
 The machines on the internal network are not exposed to the public Internet. 
 
-Only the _____ machine can accept connections from the Internet. Access to this machine is only allowed from the following IP addresses:
-- _TODO: Add whitelisted IP addresses_
+Only the jump box machine can accept connections from the Internet. Access to this machine is only allowed from the following IP addresses:
+- Personal IP addresses
 
-Machines within the network can only be accessed by _____.
-- _TODO: Which machine did you allow to access your ELK VM? What was its IP address?_
+Machines within the network can only be accessed by Jump Box.
+- Access to the ELK VM is made possible from personal IP address via port 5601. (personal IP address)
 
 A summary of the access policies in place can be found in the table below.
 
 | Name     | Publicly Accessible | Allowed IP Addresses |
 |----------|---------------------|----------------------|
-| Jump Box | Yes/No              | 10.0.0.1 10.0.0.2    |
-|          |                     |                      |
-|          |                     |                      |
+| Jump Box | Yes                 | Personal IP Address  |
+| Web 1    | No                  | 10.0.0.4             |
+| Web 2    | No                  | 10.0.0.4             |
+|Elk Server| Yes                 | Personal IP Address  |
 
 ### Elk Configuration
 
-Ansible was used to automate configuration of the ELK machine. No configuration was performed manually, which is advantageous because...
-- _TODO: What is the main advantage of automating configuration with Ansible?_
+Ansible was used to automate configuration of the ELK machine. No configuration was performed manually, which is advantageous because services running can be limited, system installation and update can be streamlined, and processes become more replicable
+
+- The main advantage of automating configuration with Ansible is to make things easier and save time for IT administrators
 
 The playbook implements the following tasks:
-- _TODO: In 3-5 bullets, explain the steps of the ELK installation play. E.g., install Docker; download image; etc._
-- ...
-- ...
+- installs docker.io, pip3, and the docker module.
+
+---bash
+  # Use apt module
+    - name: Install docker.io
+     apt:
+       update_cache: yes
+       name: docker.io
+       state: present
+
+  # Use apt module
+    - name: Install pip3
+     apt:
+       force_apt_get: yes
+       name: python3-pip
+       state: present
+
+  # Use pip module
+    - name: Install Docker python module
+      pip:
+        name: docker
+        state: present
+---
+- increases the virtual memory (for the virtual machine that would run the ELK server)
+---bash
+  # Use command module
+    - name: Increase virtual memory
+      command: sysctl -w vm.max_map_count=262144
+---
+- uses sysctl module
+---bash   
+  # Use sysctl module
+    - name: Use more memory
+      sysctl:
+        name: vm.max_map_count
+        value: "262144"
+        state: present
+        reload: yes
+---
+- downloads and launches the docker container for elk server
+---bash
+  # Use docker_container module
+      - name: download and launch a docker elk container
+        docker_container:
+        name: elk
+        image: sebp/elk:761
+        state: started
+        restart_policy: always
+        published_ports:
+          - 5601:5601
+          - 9200:9200
+          - 5044:5044
+---
+
 
 The following screenshot displays the result of running `docker ps` after successfully configuring the ELK instance.
 
@@ -74,25 +127,103 @@ The following screenshot displays the result of running `docker ps` after succes
 
 ### Target Machines & Beats
 This ELK server is configured to monitor the following machines:
-- _TODO: List the IP addresses of the machines you are monitoring_
+- Web 1 (10.0.0.5)
+- Web 2 (10.0.0.6)
 
 We have installed the following Beats on these machines:
-- _TODO: Specify which Beats you successfully installed_
+- FileBeat
+- Metric Beat
 
 These Beats allow us to collect the following information from each machine:
-- _TODO: In 1-2 sentences, explain what kind of data each beat collects, and provide 1 example of what you expect to see. E.g., `Winlogbeat` collects Windows logs, which we use to track user logon events, etc._
+- Filebeat allows us to collect log data; It also monitors the log directories or specific log files, tails the files, and forwards them either to the Elastic search or logstash for indexing
+- Metricbeat collects metrics and statistics on the system.
 
 ### Using the Playbook
 In order to use the playbook, you will need to have an Ansible control node already configured. Assuming you have such a control node provisioned: 
 
 SSH into the control node and follow the steps below:
-- Copy the _____ file to _____.
-- Update the _____ file to include...
-- Run the playbook, and navigate to ____ to check that the installation worked as expected.
+- Copy the configuration file from your Ansible container to Web Virtual Machines.
+- Update the host file to include IP addresses of the webservers and the Elk server
+- Run the playbook, and navigate to http://[Elk_VM_Public_IP]:5601/app/kibana to check that the installation worked as expected.
 
-_TODO: Answer the following questions to fill in the blanks:_
-- _Which file is the playbook? Where do you copy it?_
-- _Which file do you update to make Ansible run the playbook on a specific machine? How do I specify which machine to install the ELK server on versus which to install Filebeat on?_
-- _Which URL do you navigate to in order to check that the ELK server is running?
 
-_As a **Bonus**, provide the specific commands the user will need to run to download the playbook, update the files, etc._
+- Which file is the playbook?
+- The Filebeat-configuration
+
+- Where do you copy it?
+- copy from /etc/ansible/files/filebeat-config.yml to /etc/filebeat/filebeat.yml
+
+
+- Which file do you update to make Ansible run the playbook on a specific machine? How do I specify which machine to install the ELK server on versus which to install Filebeat on?
+- Update filebeat-config.yml; specify which machine to install by updating the host files with the ip addresses of web/elk servers and selecting which group to run on in the ansible
+
+- Which URL do you navigate to in order to check that the ELK server is running?
+- http://[your_ELK_VM_External.IP]:5601/app/kibana.
+
+
+- Filebeats
+---bash
+- name: Installing and Launch Filebeat
+  hosts: webservers
+  become: true
+  tasks:
+    # Use command module
+  - name: Download filebeat .deb file
+    command: curl -L -0 https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.4.0-amd64.deb
+
+    # Use command module
+  _ name: Install filebeat .deb
+    command: dpkg -i filebeat-7.4.0-amd64.deb
+
+    # Use copy module
+  - name: Drop in filebeat.yml
+    copy:
+      src: /etc/ansible/files/filebeat-config.yml
+      dest: /etc/filebeat/filebeat.yml
+  
+    # Use command module
+  - name: Enable and Configure System Module
+    command: filebeat modules enable system
+
+    # Use command module
+  - name: Setup filebeat
+    command: filebeat setup
+
+    # Use command module
+  - name: Start filebeat service
+    command: service filebeat start
+
+---
+
+- Metricbeats
+---bash
+- name: Install metric beat
+  hosts: webservers
+  become: true
+  tasks:
+    # Use command module
+  - name: Download metricbeat
+    command: curl -L -0 https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.4.0-amd64.deb
+
+    # Use command module
+  - name: install metricbeat
+    command: dpkg -i metricbeat-7.4.0-amd64.deb
+
+    # Use copy module
+  - name: drop in metricbeat config
+    copy:
+      src: /etc/ansible/files/metricbeat-config.yml
+      dest: /etc/metricbeat/metricbeat.yml
+
+    # Use command module
+  - name: enable and configure docker module for metric beat
+    command: metricbeat modules enable docker
+
+    # Use command module
+  - name: setup metric beat
+    command: metricbeat setup
+
+    # Use command module
+  - name: start metric beat
+    command: service metricbeat start
+---  
