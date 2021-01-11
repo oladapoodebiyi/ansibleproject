@@ -6,7 +6,10 @@ The files in this repository were used to configure the network depicted below.
 
 These files have been tested and used to generate a live ELK deployment on Azure. They can be used to either recreate the entire deployment pictured above. Alternatively, select portions of the _____ file may be used to install only certain pieces of it, such as Filebeat.
 
-  - _TODO: Enter the playbook file._
+  - [ELK INSTALL](https://github.com/oladapoodebiyi/ansibleproject/blob/main/ansible/Install-ELK.yml)
+  - [Metricbeat playbook](https://github.com/oladapoodebiyi/ansibleproject/blob/main/ansible/Metricbeat-playbook.yml)
+  - [Filebeat playbook](https://github.com/oladapoodebiyi/ansibleproject/blob/main/ansible/Filebeat-playbook.yml)
+
 
 This document contains the following details:
 - Description of the Topologu
@@ -21,22 +24,21 @@ This document contains the following details:
 
 The main purpose of this network is to expose a load-balanced and monitored instance of DVWA, the D*mn Vulnerable Web Application.
 
-Load balancing ensures that the application will be highly _____, in addition to restricting _____ to the network.
-- _TODO: What aspect of security do load balancers protect? What is the advantage of a jump box?_
+Load balancing ensures that the application will be highly available, in addition to restricting access to the network.
+Load balancers help ensure environment availability through distribution of incoming data to the webservers. Jump boxes allow for more easy administration of multiple systems and provide an additional layer between the outside and internal assets.
 
-Integrating an ELK server allows users to easily monitor the vulnerable VMs for changes to the _____ and system _____.
-- _TODO: What does Filebeat watch for?_
-- _TODO: What does Metricbeat record?_
+Integrating an ELK server allows users to easily monitor the vulnerable VMs for changes to the event logs and system metrics.
+- Filebeats watch for log directories or specific log files.
+- Metricbeat helps you monitor your servers by collecting metrics from the system and services running on the server.
 
 The configuration details of each machine may be found below.
-_Note: Use the [Markdown Table Generator](http://www.tablesgenerator.com/markdown_tables) to add/remove values from the table_.
 
 | Name     | Function | IP Address | Operating System |
 |----------|----------|------------|------------------|
-| Jump Box | Gateway  | 10.0.0.1   | Linux            |
-| TODO     |          |            |                  |
-| TODO     |          |            |                  |
-| TODO     |          |            |                  |
+| Jump Box | Gateway  | 10.0.0.4   | Linux            |
+| Web 1    | Server   | 10.0.0.5   | Linux            |
+| Web 2    | Server   | 10.0.0.6   | Linux            |
+|Elk Server|Log Server| 10.1.0.4   | Linux            |
 
 ### Access Policies
 
