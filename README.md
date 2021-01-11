@@ -68,7 +68,7 @@ Ansible was used to automate configuration of the ELK machine. No configuration 
 The playbook implements the following tasks:
 - installs docker.io, pip3, and the docker module.
 
- ---bash
+```bash
   # Use apt module
     - name: Install docker.io
      apt:
@@ -88,15 +88,15 @@ The playbook implements the following tasks:
       pip:
         name: docker
         state: present
- ---
+```
  - increases the virtual memory (for the virtual machine that would run the ELK server)
- ---bash
+```bash
   # Use command module
     - name: Increase virtual memory
       command: sysctl -w vm.max_map_count=262144 
- ---
+```
  - uses sysctl module
- ---bash   
+```bash   
   # Use sysctl module
     - name: Use more memory
       sysctl:
@@ -104,9 +104,9 @@ The playbook implements the following tasks:
         value: "262144"
         state: present
         reload: yes
- ---
+```
  - downloads and launches the docker container for elk server
- ---bash
+```bash
   # Use docker_container module
       - name: download and launch a docker elk container
         docker_container:
@@ -118,7 +118,7 @@ The playbook implements the following tasks:
           - 5601:5601
           - 9200:9200
           - 5044:5044
- ---
+```
 
 
 The following screenshot displays the result of running `docker ps` after successfully configuring the ELK instance.
@@ -162,7 +162,7 @@ SSH into the control node and follow the steps below:
 
 
 - Filebeats
- ---bash
+```bash
  - name: Installing and Launch Filebeat
   hosts: webservers
   become: true
@@ -193,10 +193,10 @@ SSH into the control node and follow the steps below:
   - name: Start filebeat service
     command: service filebeat start
 
- ---
+```
 
  - Metricbeats
- ---bash
+```bash
  - name: Install metric beat
   hosts: webservers
   become: true
@@ -226,4 +226,4 @@ SSH into the control node and follow the steps below:
     # Use command module
   - name: start metric beat
     command: service metricbeat start
- ---  
+ ```  
